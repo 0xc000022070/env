@@ -323,7 +323,7 @@ func setField(refField reflect.Value, refTypeField reflect.StructField, opts Opt
 	}
 
 	if value != "" {
-		return set(refField, refTypeField, value, opts.FuncMap)
+		return set(refField, refTypeField, value, opts)
 	}
 
 	return nil
@@ -465,10 +465,10 @@ func getOr(key, defaultValue string, defExists bool, envs map[string]string) (va
 	return value, true, false
 }
 
-func set(field reflect.Value, sf reflect.StructField, value string, funcMap map[reflect.Type]ParserFunc) error {
+func set(field reflect.Value, sf reflect.StructField, value string, options Options) error {
 	if tm := asTextUnmarshaler(field); tm != nil {
 		if err := tm.UnmarshalText([]byte(value)); err != nil {
-			return newParseError(sf, err)
+			return newParseError(sf, err, options)
 		}
 		return nil
 	}
@@ -480,11 +480,11 @@ func set(field reflect.Value, sf reflect.StructField, value string, funcMap map[
 		fieldee = field.Elem()
 	}
 
-	parserFunc, ok := funcMap[typee]
+	parserFunc, ok := options.FuncMap[typee]
 	if ok {
 		val, err := parserFunc(value)
 		if err != nil {
-			return newParseError(sf, err)
+			return newParseError(sf, err, options)
 		}
 
 		fieldee.Set(reflect.ValueOf(val))
@@ -495,7 +495,7 @@ func set(field reflect.Value, sf reflect.StructField, value string, funcMap map[
 	if ok {
 		val, err := parserFunc(value)
 		if err != nil {
-			return newParseError(sf, err)
+			return newParseError(sf, err, options)
 		}
 
 		fieldee.Set(reflect.ValueOf(val).Convert(typee))
@@ -504,15 +504,15 @@ func set(field reflect.Value, sf reflect.StructField, value string, funcMap map[
 
 	switch field.Kind() {
 	case reflect.Slice:
-		return handleSlice(field, value, sf, funcMap)
+		return handleSlice(field, value, sf, options)
 	case reflect.Map:
-		return handleMap(field, value, sf, funcMap)
+		return handleMap(field, value, sf, options)
 	}
 
 	return newNoParserError(sf)
 }
 
-func handleSlice(field reflect.Value, value string, sf reflect.StructField, funcMap map[reflect.Type]ParserFunc) error {
+func handleSlice(field reflect.Value, value string, sf reflect.StructField, options Options) error {
 	separator := sf.Tag.Get("envSeparator")
 	if separator == "" {
 		separator = ","
@@ -525,10 +525,10 @@ func handleSlice(field reflect.Value, value string, sf reflect.StructField, func
 	}
 
 	if _, ok := reflect.New(typee).Interface().(encoding.TextUnmarshaler); ok {
-		return parseTextUnmarshalers(field, parts, sf)
+		return parseTextUnmarshalers(field, parts, sf, options)
 	}
 
-	parserFunc, ok := funcMap[typee]
+	parserFunc, ok := options.FuncMap[typee]
 	if !ok {
 		parserFunc, ok = defaultBuiltInParsers[typee.Kind()]
 		if !ok {
@@ -540,7 +540,7 @@ func handleSlice(field reflect.Value, value string, sf reflect.StructField, func
 	for _, part := range parts {
 		r, err := parserFunc(part)
 		if err != nil {
-			return newParseError(sf, err)
+			return newParseError(sf, err, options)
 		}
 		v := reflect.ValueOf(r).Convert(typee)
 		if sf.Type.Elem().Kind() == reflect.Ptr {
@@ -553,9 +553,9 @@ func handleSlice(field reflect.Value, value string, sf reflect.StructField, func
 	return nil
 }
 
-func handleMap(field reflect.Value, value string, sf reflect.StructField, funcMap map[reflect.Type]ParserFunc) error {
+func handleMap(field reflect.Value, value string, sf reflect.StructField, options Options) error {
 	keyType := sf.Type.Key()
-	keyParserFunc, ok := funcMap[keyType]
+	keyParserFunc, ok := options.FuncMap[keyType]
 	if !ok {
 		keyParserFunc, ok = defaultBuiltInParsers[keyType.Kind()]
 		if !ok {
@@ -564,7 +564,7 @@ func handleMap(field reflect.Value, value string, sf reflect.StructField, funcMa
 	}
 
 	elemType := sf.Type.Elem()
-	elemParserFunc, ok := funcMap[elemType]
+	elemParserFunc, ok := options.FuncMap[elemType]
 	if !ok {
 		elemParserFunc, ok = defaultBuiltInParsers[elemType.Kind()]
 		if !ok {
@@ -586,17 +586,17 @@ func handleMap(field reflect.Value, value string, sf reflect.StructField, funcMa
 	for _, part := range strings.Split(value, separator) {
 		pairs := strings.Split(part, keyValSeparator)
 		if len(pairs) != 2 {
-			return newParseError(sf, fmt.Errorf(`%q should be in "key%svalue" format`, part, keyValSeparator))
+			return newParseError(sf, fmt.Errorf(`%q should be in "key%svalue" format`, part, keyValSeparator), options)
 		}
 
 		key, err := keyParserFunc(pairs[0])
 		if err != nil {
-			return newParseError(sf, err)
+			return newParseError(sf, err, options)
 		}
 
 		elem, err := elemParserFunc(pairs[1])
 		if err != nil {
-			return newParseError(sf, err)
+			return newParseError(sf, err, options)
 		}
 
 		result.SetMapIndex(reflect.ValueOf(key).Convert(keyType), reflect.ValueOf(elem).Convert(elemType))
@@ -622,7 +622,7 @@ func asTextUnmarshaler(field reflect.Value) encoding.TextUnmarshaler {
 	return tm
 }
 
-func parseTextUnmarshalers(field reflect.Value, data []string, sf reflect.StructField) error {
+func parseTextUnmarshalers(field reflect.Value, data []string, sf reflect.StructField, options Options) error {
 	s := len(data)
 	elemType := field.Type().Elem()
 	slice := reflect.MakeSlice(reflect.SliceOf(elemType), s, s)
@@ -636,7 +636,7 @@ func parseTextUnmarshalers(field reflect.Value, data []string, sf reflect.Struct
 		}
 		tm := sv.Interface().(encoding.TextUnmarshaler)
 		if err := tm.UnmarshalText([]byte(v)); err != nil {
-			return newParseError(sf, err)
+			return newParseError(sf, err, options)
 		}
 		if kind == reflect.Ptr {
 			slice.Index(i).Set(sv)

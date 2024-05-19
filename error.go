@@ -57,8 +57,15 @@ type ParseError struct {
 	Err  error
 }
 
-func newParseError(sf reflect.StructField, err error) error {
-	return ParseError{sf.Name, sf.Type, err}
+func newParseError(sf reflect.StructField, err error, options Options) error {
+	name, ok := sf.Tag.Lookup(options.TagName)
+	if !ok {
+		name = sf.Name
+	} else {
+		name = options.Prefix + name
+	}
+
+	return ParseError{name, sf.Type, err}
 }
 
 func (e ParseError) Error() string {
