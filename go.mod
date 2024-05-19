@@ -1,3 +1,3 @@
-module github.com/caarlos0/env/v11
+module github.com/NeticShard/env
 
 go 1.18
