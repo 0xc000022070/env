@@ -4,8 +4,11 @@
 [![Coverage Status](https://img.shields.io/codecov/c/gh/caarlos0/env.svg?logo=codecov&style=for-the-badge)](https://codecov.io/gh/caarlos0/env)
 [![](http://img.shields.io/badge/godoc-reference-5272B4.svg?style=for-the-badge)](https://pkg.go.dev/github.com/caarlos0/env/v11)
 
-A simple and zero-dependencies library to parse environment variables into
-`struct`s.
+A simple and zero-dependencies library to parse environment variables into `struct`s.
+
+**Fork-note:** The only difference with the original library is that **env tag names** are *returned* and has
+*more priority* than **field names** in every error derivated from `ParseError`. Also, unit tests has been
+updated to take that into account.
 
 ## Used and supported by
 
@@ -33,36 +36,36 @@ The usage looks like this:
 package main
 
 import (
-	"fmt"
-	"time"
+ "fmt"
+ "time"
 
-	"github.com/caarlos0/env/v11"
+ "github.com/caarlos0/env/v11"
 )
 
 type config struct {
-	Home         string         `env:"HOME"`
-	Port         int            `env:"PORT" envDefault:"3000"`
-	Password     string         `env:"PASSWORD,unset"`
-	IsProduction bool           `env:"PRODUCTION"`
-	Duration     time.Duration  `env:"DURATION"`
-	Hosts        []string       `env:"HOSTS" envSeparator:":"`
-	TempFolder   string         `env:"TEMP_FOLDER,expand" envDefault:"${HOME}/tmp"`
-	StringInts   map[string]int `env:"MAP_STRING_INT"`
+ Home         string         `env:"HOME"`
+ Port         int            `env:"PORT" envDefault:"3000"`
+ Password     string         `env:"PASSWORD,unset"`
+ IsProduction bool           `env:"PRODUCTION"`
+ Duration     time.Duration  `env:"DURATION"`
+ Hosts        []string       `env:"HOSTS" envSeparator:":"`
+ TempFolder   string         `env:"TEMP_FOLDER,expand" envDefault:"${HOME}/tmp"`
+ StringInts   map[string]int `env:"MAP_STRING_INT"`
 }
 
 func main() {
-	cfg := config{}
-	if err := env.Parse(&cfg); err != nil {
-		fmt.Printf("%+v\n", err)
-	}
+ cfg := config{}
+ if err := env.Parse(&cfg); err != nil {
+  fmt.Printf("%+v\n", err)
+ }
 
   // or you can use generics
   cfg, err := env.ParseAs[config]()
   if err != nil {
-		fmt.Printf("%+v\n", err)
+  fmt.Printf("%+v\n", err)
   }
 
-	fmt.Printf("%+v\n", cfg)
+ fmt.Printf("%+v\n", cfg)
 }
 ```
 
@@ -77,7 +80,7 @@ $ PRODUCTION=true HOSTS="host1:host2:host3" DURATION=1s MAP_STRING_INT=k1:1,k2:2
 
 > [!CAUTION]
 >
-> _Unexported fields_ will be **ignored** by `env`.
+> *Unexported fields* will be **ignored** by `env`.
 > This is by design and will not change.
 
 ## Supported types and defaults
@@ -154,13 +157,13 @@ Its fairly straightforward:
 type MyTime time.Time
 
 func (t *MyTime) UnmarshalText(text []byte) error {
-	tt, err := time.Parse("2006-01-02", string(text))
-	*t = MyTime(tt)
-	return err
+ tt, err := time.Parse("2006-01-02", string(text))
+ *t = MyTime(tt)
+ return err
 }
 
 type Config struct {
-	SomeTime MyTime `env:"SOME_TIME"`
+ SomeTime MyTime `env:"SOME_TIME"`
 }
 ```
 
@@ -174,7 +177,7 @@ returned if the `config` struct is changed to:
 
 ```go
 type config struct {
-	SecretKey string `env:"SECRET_KEY,required"`
+ SecretKey string `env:"SECRET_KEY,required"`
 }
 ```
 
@@ -193,7 +196,7 @@ of the variable. For example:
 
 ```go
 type config struct {
-	SecretKey string `env:"SECRET_KEY,expand"`
+ SecretKey string `env:"SECRET_KEY,expand"`
 }
 ```
 
@@ -201,22 +204,22 @@ This also works with `envDefault`:
 
 ```go
 import (
-	"fmt"
-	"github.com/caarlos0/env/v11"
+ "fmt"
+ "github.com/caarlos0/env/v11"
 )
 
 type config struct {
-	Host     string `env:"HOST" envDefault:"localhost"`
-	Port     int    `env:"PORT" envDefault:"3000"`
-	Address  string `env:"ADDRESS,expand" envDefault:"$HOST:${PORT}"`
+ Host     string `env:"HOST" envDefault:"localhost"`
+ Port     int    `env:"PORT" envDefault:"3000"`
+ Address  string `env:"ADDRESS,expand" envDefault:"$HOST:${PORT}"`
 }
 
 func main() {
-	cfg := config{}
-	if err := env.Parse(&cfg); err != nil {
-		fmt.Printf("%+v\n", err)
-	}
-	fmt.Printf("%+v\n", cfg)
+ cfg := config{}
+ if err := env.Parse(&cfg); err != nil {
+  fmt.Printf("%+v\n", err)
+ }
+ fmt.Printf("%+v\n", cfg)
 }
 ```
 
@@ -237,7 +240,7 @@ Example:
 
 ```go
 type config struct {
-	SecretKey string `env:"SECRET_KEY,notEmpty"`
+ SecretKey string `env:"SECRET_KEY,notEmpty"`
 }
 ```
 
@@ -250,7 +253,7 @@ Example:
 
 ```go
 type config struct {
-	SecretKey string `env:"SECRET_KEY,unset"`
+ SecretKey string `env:"SECRET_KEY,unset"`
 }
 ```
 
@@ -265,25 +268,25 @@ The path of that file is given by the environment variable associated with it:
 package main
 
 import (
-	"fmt"
-	"time"
+ "fmt"
+ "time"
 
-	"github.com/caarlos0/env/v11"
+ "github.com/caarlos0/env/v11"
 )
 
 type config struct {
-	Secret      string `env:"SECRET,file"`
-	Password    string `env:"PASSWORD,file"           envDefault:"/tmp/password"`
-	Certificate string `env:"CERTIFICATE,file,expand" envDefault:"${CERTIFICATE_FILE}"`
+ Secret      string `env:"SECRET,file"`
+ Password    string `env:"PASSWORD,file"           envDefault:"/tmp/password"`
+ Certificate string `env:"CERTIFICATE,file,expand" envDefault:"${CERTIFICATE_FILE}"`
 }
 
 func main() {
-	cfg := config{}
-	if err := env.Parse(&cfg); err != nil {
-		fmt.Printf("%+v\n", err)
-	}
+ cfg := config{}
+ if err := env.Parse(&cfg); err != nil {
+  fmt.Printf("%+v\n", err)
+ }
 
-	fmt.Printf("%+v\n", cfg)
+ fmt.Printf("%+v\n", cfg)
 }
 ```
 
@@ -293,8 +296,8 @@ $ echo dvorak > /tmp/password
 $ echo coleman > /tmp/certificate
 
 $ SECRET=/tmp/secret  \
-	CERTIFICATE_FILE=/tmp/certificate \
-	go run main.go
+ CERTIFICATE_FILE=/tmp/certificate \
+ go run main.go
 {Secret:qwerty Password:dvorak Certificate:coleman}
 ```
 
@@ -314,29 +317,29 @@ Here's an example:
 package main
 
 import (
-	"fmt"
-	"log"
+ "fmt"
+ "log"
 
-	"github.com/caarlos0/env/v11"
+ "github.com/caarlos0/env/v11"
 )
 
 type Config struct {
-	Username     string // will use $USERNAME
-	Password     string // will use $PASSWORD
-	UserFullName string // will use $USER_FULL_NAME
+ Username     string // will use $USERNAME
+ Password     string // will use $PASSWORD
+ UserFullName string // will use $USER_FULL_NAME
 }
 
 func main() {
-	cfg := &Config{}
-	opts := env.Options{UseFieldNameByDefault: true}
+ cfg := &Config{}
+ opts := env.Options{UseFieldNameByDefault: true}
 
-	// Load env vars.
-	if err := env.ParseWithOptions(cfg, opts); err != nil {
-		log.Fatal(err)
-	}
+ // Load env vars.
+ if err := env.ParseWithOptions(cfg, opts); err != nil {
+  log.Fatal(err)
+ }
 
-	// Print the loaded data.
-	fmt.Printf("%+v\n", cfg)
+ // Print the loaded data.
+ fmt.Printf("%+v\n", cfg)
 }
 ```
 
@@ -354,29 +357,29 @@ This can make your testing scenarios a bit more clean and easy to handle.
 package main
 
 import (
-	"fmt"
-	"log"
+ "fmt"
+ "log"
 
-	"github.com/caarlos0/env/v11"
+ "github.com/caarlos0/env/v11"
 )
 
 type Config struct {
-	Password string `env:"PASSWORD"`
+ Password string `env:"PASSWORD"`
 }
 
 func main() {
-	cfg := &Config{}
-	opts := env.Options{Environment: map[string]string{
-		"PASSWORD": "MY_PASSWORD",
-	}}
+ cfg := &Config{}
+ opts := env.Options{Environment: map[string]string{
+  "PASSWORD": "MY_PASSWORD",
+ }}
 
-	// Load env vars.
-	if err := env.ParseWithOptions(cfg, opts); err != nil {
-		log.Fatal(err)
-	}
+ // Load env vars.
+ if err := env.ParseWithOptions(cfg, opts); err != nil {
+  log.Fatal(err)
+ }
 
-	// Print the loaded data.
-	fmt.Printf("%+v\n", cfg)
+ // Print the loaded data.
+ fmt.Printf("%+v\n", cfg)
 }
 ```
 
@@ -391,27 +394,27 @@ For example
 package main
 
 import (
-	"fmt"
-	"log"
+ "fmt"
+ "log"
 
-	"github.com/caarlos0/env/v11"
+ "github.com/caarlos0/env/v11"
 )
 
 type Config struct {
-	Password string `json:"PASSWORD"`
+ Password string `json:"PASSWORD"`
 }
 
 func main() {
-	cfg := &Config{}
-	opts := env.Options{TagName: "json"}
+ cfg := &Config{}
+ opts := env.Options{TagName: "json"}
 
-	// Load env vars.
-	if err := env.ParseWithOptions(cfg, opts); err != nil {
-		log.Fatal(err)
-	}
+ // Load env vars.
+ if err := env.ParseWithOptions(cfg, opts); err != nil {
+  log.Fatal(err)
+ }
 
-	// Print the loaded data.
-	fmt.Printf("%+v\n", cfg)
+ // Print the loaded data.
+ fmt.Printf("%+v\n", cfg)
 }
 ```
 
@@ -425,42 +428,42 @@ Here's an example flexing it a bit:
 package main
 
 import (
-	"fmt"
-	"log"
+ "fmt"
+ "log"
 
-	"github.com/caarlos0/env/v11"
+ "github.com/caarlos0/env/v11"
 )
 
 type Config struct {
-	Home string `env:"HOME"`
+ Home string `env:"HOME"`
 }
 
 type ComplexConfig struct {
-	Foo   Config `envPrefix:"FOO_"`
-	Clean Config
-	Bar   Config `envPrefix:"BAR_"`
-	Blah  string `env:"BLAH"`
+ Foo   Config `envPrefix:"FOO_"`
+ Clean Config
+ Bar   Config `envPrefix:"BAR_"`
+ Blah  string `env:"BLAH"`
 }
 
 func main() {
-	cfg := &ComplexConfig{}
-	opts := env.Options{
-		Prefix: "T_",
-		Environment: map[string]string{
-			"T_FOO_HOME": "/foo",
-			"T_BAR_HOME": "/bar",
-			"T_BLAH":     "blahhh",
-			"T_HOME":     "/clean",
-		},
-	}
+ cfg := &ComplexConfig{}
+ opts := env.Options{
+  Prefix: "T_",
+  Environment: map[string]string{
+   "T_FOO_HOME": "/foo",
+   "T_BAR_HOME": "/bar",
+   "T_BLAH":     "blahhh",
+   "T_HOME":     "/clean",
+  },
+ }
 
-	// Load env vars.
-	if err := env.ParseWithOptions(cfg, opts); err != nil {
-		log.Fatal(err)
-	}
+ // Load env vars.
+ if err := env.ParseWithOptions(cfg, opts); err != nil {
+  log.Fatal(err)
+ }
 
-	// Print the loaded data.
-	fmt.Printf("%+v\n", cfg)
+ // Print the loaded data.
+ fmt.Printf("%+v\n", cfg)
 }
 ```
 
@@ -474,32 +477,32 @@ You can do this by passing a `OnSet` option:
 package main
 
 import (
-	"fmt"
-	"log"
+ "fmt"
+ "log"
 
-	"github.com/caarlos0/env/v11"
+ "github.com/caarlos0/env/v11"
 )
 
 type Config struct {
-	Username string `env:"USERNAME" envDefault:"admin"`
-	Password string `env:"PASSWORD"`
+ Username string `env:"USERNAME" envDefault:"admin"`
+ Password string `env:"PASSWORD"`
 }
 
 func main() {
-	cfg := &Config{}
-	opts := env.Options{
-		OnSet: func(tag string, value interface{}, isDefault bool) {
-			fmt.Printf("Set %s to %v (default? %v)\n", tag, value, isDefault)
-		},
-	}
+ cfg := &Config{}
+ opts := env.Options{
+  OnSet: func(tag string, value interface{}, isDefault bool) {
+   fmt.Printf("Set %s to %v (default? %v)\n", tag, value, isDefault)
+  },
+ }
 
-	// Load env vars.
-	if err := env.ParseWithOptions(cfg, opts); err != nil {
-		log.Fatal(err)
-	}
+ // Load env vars.
+ if err := env.ParseWithOptions(cfg, opts); err != nil {
+  log.Fatal(err)
+ }
 
-	// Print the loaded data.
-	fmt.Printf("%+v\n", cfg)
+ // Print the loaded data.
+ fmt.Printf("%+v\n", cfg)
 }
 ```
 
@@ -514,28 +517,28 @@ For example
 package main
 
 import (
-	"fmt"
-	"log"
+ "fmt"
+ "log"
 
-	"github.com/caarlos0/env/v11"
+ "github.com/caarlos0/env/v11"
 )
 
 type Config struct {
-	Username string `env:"USERNAME" envDefault:"admin"`
-	Password string `env:"PASSWORD"`
+ Username string `env:"USERNAME" envDefault:"admin"`
+ Password string `env:"PASSWORD"`
 }
 
 func main() {
-	cfg := &Config{}
-	opts := env.Options{RequiredIfNoDef: true}
+ cfg := &Config{}
+ opts := env.Options{RequiredIfNoDef: true}
 
-	// Load env vars.
-	if err := env.ParseWithOptions(cfg, opts); err != nil {
-		log.Fatal(err)
-	}
+ // Load env vars.
+ if err := env.ParseWithOptions(cfg, opts); err != nil {
+  log.Fatal(err)
+ }
 
-	// Print the loaded data.
-	fmt.Printf("%+v\n", cfg)
+ // Print the loaded data.
+ fmt.Printf("%+v\n", cfg)
 }
 ```
 
@@ -550,28 +553,28 @@ Parse.
 package main
 
 import (
-	"fmt"
-	"log"
+ "fmt"
+ "log"
 
-	"github.com/caarlos0/env/v11"
+ "github.com/caarlos0/env/v11"
 )
 
 type Config struct {
-	Username string `env:"USERNAME" envDefault:"admin"`
-	Password string `env:"PASSWORD"`
+ Username string `env:"USERNAME" envDefault:"admin"`
+ Password string `env:"PASSWORD"`
 }
 
 func main() {
-	cfg := Config{
-		Username: "test",
-		Password: "123456",
-	}
+ cfg := Config{
+  Username: "test",
+  Password: "123456",
+ }
 
-	if err := env.Parse(&cfg); err != nil {
-		fmt.Println("failed:", err)
-	}
+ if err := env.Parse(&cfg); err != nil {
+  fmt.Println("failed:", err)
+ }
 
-	fmt.Printf("%+v", cfg) // {Username:admin Password:123456}
+ fmt.Printf("%+v", cfg) // {Username:admin Password:123456}
 }
 ```
 
@@ -583,38 +586,38 @@ You can handle the errors the library throws like so:
 package main
 
 import (
-	"fmt"
-	"log"
+ "fmt"
+ "log"
 
-	"github.com/caarlos0/env/v11"
+ "github.com/caarlos0/env/v11"
 )
 
 type Config struct {
-	Username string `env:"USERNAME" envDefault:"admin"`
-	Password string `env:"PASSWORD"`
+ Username string `env:"USERNAME" envDefault:"admin"`
+ Password string `env:"PASSWORD"`
 }
 
 func main() {
-	var cfg Config
-	err := env.Parse(&cfg)
-	if e, ok := err.(*env.AggregateError); ok {
-		for _, er := range e.Errors {
-			switch v := er.(type) {
-			case env.ParseError:
-				// handle it
-			case env.NotStructPtrError:
-				// handle it
-			case env.NoParserError:
-				// handle it
-			case env.NoSupportedTagOptionError:
-				// handle it
-			default:
-				fmt.Printf("Unknown error type %v", v)
-			}
-		}
-	}
+ var cfg Config
+ err := env.Parse(&cfg)
+ if e, ok := err.(*env.AggregateError); ok {
+  for _, er := range e.Errors {
+   switch v := er.(type) {
+   case env.ParseError:
+    // handle it
+   case env.NotStructPtrError:
+    // handle it
+   case env.NoParserError:
+    // handle it
+   case env.NoSupportedTagOptionError:
+    // handle it
+   default:
+    fmt.Printf("Unknown error type %v", v)
+   }
+  }
+ }
 
-	fmt.Printf("%+v", cfg) // {Username:admin Password:123456}
+ fmt.Printf("%+v", cfg) // {Username:admin Password:123456}
 }
 ```
 
