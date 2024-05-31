@@ -30,8 +30,4 @@ lint:
 ci: build test
 .PHONY: ci
 
-card:
-	wget -O card.png -c "https://og.caarlos0.dev/**env**: parse envs to structs.png?theme=light&md=1&fontSize=100px&images=https://github.com/caarlos0.png"
-.PHONY: card
-
 .DEFAULT_GOAL := ci
