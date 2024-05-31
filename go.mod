@@ -1,3 +1,3 @@
-module github.com/neticshard/env
+module github.com/neticlabs/env
 
 go 1.18

@@ -80,8 +80,8 @@ func (e NotStructPtrError) Error() string {
 }
 
 // This error occurs when there is no parser provided for given type
-// Supported types and defaults: https://github.com/NeticShard/env#supported-types-and-defaults
-// How to create a custom parser: https://github.com/NeticShard/env#custom-parser-funcs
+// Supported types and defaults: https://github.com/neticlabs/env#supported-types-and-defaults
+// How to create a custom parser: https://github.com/neticlabs/env#custom-parser-funcs
 type NoParserError struct {
 	Name string
 	Type reflect.Type
@@ -97,7 +97,7 @@ func (e NoParserError) Error() string {
 
 // This error occurs when the given tag is not supported
 // In-built supported tags: "", "file", "required", "unset", "notEmpty", "expand", "envDefault", "envSeparator"
-// How to create a custom tag: https://github.com/NeticShard/env#changing-default-tag-name
+// How to create a custom tag: https://github.com/neticlabs/env#changing-default-tag-name
 type NoSupportedTagOptionError struct {
 	Tag string
 }
@@ -111,7 +111,7 @@ func (e NoSupportedTagOptionError) Error() string {
 }
 
 // This error occurs when the required variable is not set
-// Read about required fields: https://github.com/NeticShard/env#required-fields
+// Read about required fields: https://github.com/neticlabs/env#required-fields
 type EnvVarIsNotSetError struct {
 	Key string
 }
@@ -125,7 +125,7 @@ func (e EnvVarIsNotSetError) Error() string {
 }
 
 // This error occurs when the variable which must be not empty is existing but has an empty value
-// Read about not empty fields: https://github.com/NeticShard/env#not-empty-fields
+// Read about not empty fields: https://github.com/neticlabs/env#not-empty-fields
 type EmptyEnvVarError struct {
 	Key string
 }
@@ -139,7 +139,7 @@ func (e EmptyEnvVarError) Error() string {
 }
 
 // This error occurs when it's impossible to load the value from the file
-// Read about From file feature: https://github.com/NeticShard/env#from-file
+// Read about From file feature: https://github.com/neticlabs/env#from-file
 type LoadFileContentError struct {
 	Filename string
 	Key      string
@@ -155,8 +155,8 @@ func (e LoadFileContentError) Error() string {
 }
 
 // This error occurs when it's impossible to convert value using given parser
-// Supported types and defaults: https://github.com/NeticShard/env#supported-types-and-defaults
-// How to create a custom parser: https://github.com/NeticShard/env#custom-parser-funcs
+// Supported types and defaults: https://github.com/neticlabs/env#supported-types-and-defaults
+// How to create a custom parser: https://github.com/neticlabs/env#custom-parser-funcs
 type ParseValueError struct {
 	Msg string
 	Err error
